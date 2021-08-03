@@ -6,10 +6,12 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"os"
 	"os/signal"
+	"runtime"
+	"strconv"
 	"strings"
 	"syscall"
+	"Test/utils"
 )
-
 var botID string
 var client *discordgo.Session
 
@@ -35,7 +37,8 @@ func Start() {
 }
 
 func ready(bot *discordgo.Session, event *discordgo.Ready) {
-	bot.UpdateGameStatus(0, "&ping")
+	guildsSize := len(bot.State.Guilds)
+	bot.UpdateGameStatus(0, strconv.Itoa(guildsSize) + " guilds!")
 }
 
 func message(bot *discordgo.Session, message *discordgo.MessageCreate) {
@@ -61,6 +64,16 @@ func message(bot *discordgo.Session, message *discordgo.MessageCreate) {
 				Description: "Just click [here](https://github.com/gonzyui) to go to my repository and see if I was updated :)",
 				Color: 0x00ff00,
 			}
+			bot.ChannelMessageSendEmbed(message.ChannelID, embed)
+		}
+		if message.Content == "&botinfo" {
+			embed := embed.NewEmbed().
+				SetTitle("My informations").
+				SetDescription("Some informations about me :)").
+				AddField("GO version:", runtime.Version()).
+				AddField("DiscordGO version:", discordgo.VERSION).
+				AddField("Concurrent tasks:", strconv.Itoa(runtime.NumGoroutine())).
+				AddField("Latency:", ping.String()).MessageEmbed
 			bot.ChannelMessageSendEmbed(message.ChannelID, embed)
 		}
 	}
