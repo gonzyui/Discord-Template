@@ -2,6 +2,7 @@ package bot
 
 import (
 	"Test/config"
+	"Test/utils"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"os"
@@ -10,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
-	"Test/utils"
 )
 var botID string
 var client *discordgo.Session
@@ -42,9 +42,7 @@ func ready(bot *discordgo.Session, event *discordgo.Ready) {
 }
 
 func message(bot *discordgo.Session, message *discordgo.MessageCreate) {
-	if message.Author.Bot {
-		return
-	}
+	if message.Author.Bot { return }
 	switch {
 	case strings.HasPrefix(message.Content, config.BotPrefix):
 		ping := bot.HeartbeatLatency().Truncate(60)
@@ -55,25 +53,24 @@ func message(bot *discordgo.Session, message *discordgo.MessageCreate) {
 			bot.ChannelMessageSend(message.ChannelID, "My author is Gonz#0001, I'm only a template discord bot made in golang.")
 		}
 		if message.Content == "&github" {
-			embed := &discordgo.MessageEmbed{
-				Author: &discordgo.MessageEmbedAuthor{},
-				Thumbnail: &discordgo.MessageEmbedThumbnail{
-					URL: message.Author.AvatarURL("1024"),
-				},
-				Title: "My repository",
-				Description: "Just click [here](https://github.com/gonzyui) to go to my repository and see if I was updated :)",
-				Color: 0x00ff00,
-			}
+			embed := embed.NewEmbed().
+				SetAuthor(message.Author.Username, message.Author.AvatarURL("1024")).
+				SetThumbnail(message.Author.AvatarURL("1024")).
+				SetTitle("My repository").
+				SetDescription("You can find my repository by clicking [here](https://github.com/gonzyui/Discord-Template).").
+				SetColor(0x00ff00).MessageEmbed
 			bot.ChannelMessageSendEmbed(message.ChannelID, embed)
 		}
 		if message.Content == "&botinfo" {
+			guilds := len(bot.State.Guilds)
 			embed := embed.NewEmbed().
 				SetTitle("My informations").
 				SetDescription("Some informations about me :)").
 				AddField("GO version:", runtime.Version()).
 				AddField("DiscordGO version:", discordgo.VERSION).
 				AddField("Concurrent tasks:", strconv.Itoa(runtime.NumGoroutine())).
-				AddField("Latency:", ping.String()).MessageEmbed
+				AddField("Latency:", ping.String()).
+				AddField("Total guilds:", strconv.Itoa(guilds)).MessageEmbed
 			bot.ChannelMessageSendEmbed(message.ChannelID, embed)
 		}
 	}
